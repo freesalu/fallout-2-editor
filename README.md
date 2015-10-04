@@ -1,7 +1,7 @@
 # Fallout 2 Save Game Editor
-Very basic save game editor for Fallout 2 (tested on OSX.)
+Very basic save game editor for Fallout 2 (tested on OSX with the GoG.com version.)
 
-Wrote this since I couldn't find any save game editors that worked on OSX (and as a fun little learning project!)
+Wrote this since I couldn't find any save game editors that immediately worked on OSX (and as a fun little learning project!)
 
 It _should_ work outside of OSX, but no promises.
 
