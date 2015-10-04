@@ -3,20 +3,18 @@
 Make a backup of all your save files before running!
 """
 
-import getpass
 import os
-import re
 import mmap
 import struct
-import sys
 
 class F2SaveFile(object):
     """Save file representation. Not perfect but it works on my machine!"""
-
+    item_db = {}
+    skills = {}
+    perks = {}
+    #Offsets/markers from http://falloutmods.wikia.com/wiki/SAVE.DAT_File_Format
     f5_marker = b'\x00\x00\x46\x50'
     neg_1 = 0xFFFFFFFF
-    item_path = "f2items.csv"
-    item_db = {}
     hex_map = {
         'header': {
             'offset':0x0,
@@ -59,35 +57,41 @@ class F2SaveFile(object):
         },
         'f9' : {'offset':None}
     }
-    skills = {}
-    perks = {}
 
     def __init__(self, path):
-        self.f = open(os.path.join(path, 'SAVE.DAT'), 'r+b')
-        self.mm = mmap.mmap(self.f.fileno(), 0)
-        self.load_items()
-        self.load_skills()
-        self.load_perks()
+        self.save_file = open(os.path.join(path, 'SAVE.DAT'), 'r+b')
+        # Create a memory map of the file.
+        self.mm_save = mmap.mmap(self.save_file.fileno(), 0)
+        # _load hex values for stats/skills/perks.
+        self._load_items()
+        self._load_skills()
+        self._load_perks()
         self.stats = ['str', 'agi', 'per', 'end', 'luc', 'int', 'cha']
-        self.hex_map['f5']['offset'] = self.find_address(self.f5_marker)
-        self.f5s = self.find_address(self.f5_marker)
-        self.hex_map['f6']['offset'] = self.find_F6()
-        self.hex_map['f9']['offset'] = self.hex_map['f6']['offset'] + 0x0178 + 0x4C + 0x10
+        # Find Function 5
+        self.hex_map['f5']['offset'] = self._find_address(self.f5_marker)
+        self.f5s = self._find_address(self.f5_marker)
+        # Find Function 6
+        self.hex_map['f6']['offset'] = self._find_f6()
+        # And Function 9, based on where Function 6 is.
+        f9_offset = 0x0178 + 0x4C + 0x10
+        self.hex_map['f9']['offset'] = self.hex_map['f6']['offset'] + f9_offset
 
-    def fetch_value(self, offset, size):
-        return self.mm[offset:offset+size]
+    def _fetch_value(self, offset, size):
+        return self.mm_save[offset:offset+size]
 
-    def fetch_int(self, offset, size):
-        return struct.unpack('>i', self.fetch_value(offset, size))[0]
+    def _fetch_int(self, offset, size):
+        return struct.unpack('>i', self._fetch_value(offset, size))[0]
 
     def get_value(self, fun, key):
-        return self.fetch_value(self.hex_map[fun]['offset'] + self.hex_map[fun]['keys'][key][0], self.hex_map[fun]['keys'][key][1])
+        return self._fetch_value(self.hex_map[fun]['offset'] +
+            self.hex_map[fun]['keys'][key][0], 
+            self.hex_map[fun]['keys'][key][1])
 
     def get_int(self, fun, key):
         return struct.unpack('>i', self.get_value(fun, key))[0]
 
     def set_int(self, offs, val):
-        self.mm[offs:offs+0x04] = struct.pack('>i', val)
+        self.mm_save[offs:offs+0x04] = struct.pack('>i', val)
 
     def set_function_int(self, fun, key, val):
         to_up = self.hex_map[fun]['offset'] + self.hex_map[fun]['keys'][key][0]
@@ -95,54 +99,56 @@ class F2SaveFile(object):
 
     def get_function_int(self, fun, key):
         to_up = self.hex_map[fun]['offset'] + self.hex_map[fun]['keys'][key][0]
-        return struct.unpack('>i', self.mm[to_up:to_up+0x04])[0]
+        return struct.unpack('>i', self.mm_save[to_up:to_up+0x04])[0]
 
-    def load_skills(self):
-        with open('f2skills.csv', 'r') as f:
-            for line in f:
+    def _load_skills(self):
+        with open('f2skills.csv', 'r') as skill_file:
+            for line in skill_file:
                 offs, name = line.replace('\n', '').split(',')
                 self.skills[name] = int(offs, 16)*0x04
 
-    def load_perks(self):
-        with open('f2perks.csv', 'r') as f:
-            for line in f:
+    def _load_perks(self):
+        with open('f2perks.csv', 'r') as perk_file:
+            for line in perk_file:
                 offs, name = line.replace('\n', '').split(',')
                 self.perks[name] = int(offs, 16)*0x04
 
     def get_skill(self, name):
         if name not in self.skills:
-            print "Skill not found."
-        return self.fetch_int(self.hex_map['f6']['offset']+self.hex_map['f6']['keys']['skills'][0] + self.skills[name], 0x04)
+            raise KeyError('No skill named "{0}"'.format(name))
+        return self._fetch_int(self.hex_map['f6']['offset'] +
+            self.hex_map['f6']['keys']['skills'][0] + self.skills[name], 0x04)
 
     def set_skill(self, name, value):
         if name not in self.skills:
-            print "Skill not found."
-            return
-        self.set_int(self.hex_map['f6']['offset']+self.hex_map['f6']['keys']['skills'][0] + self.skills[name], value)
-
-    def set_perk(self, name, val=1):
-        self.set_int(self.hex_map['f9']['offset'] + self.perks[name], val)
+            raise KeyError('No skill named "{0}"'.format(name))
+        self.set_int(self.hex_map['f6']['offset'] + 
+            self.hex_map['f6']['keys']['skills'][0] + 
+            self.skills[name], value)
 
     def get_perk(self, name):
         if name not in self.perks:
-            print "Perk not found."
-            return
-        return self.fetch_int(self.hex_map['f9']['offset'] + self.perks[name], 0x04)
+            raise KeyError('No perk named "{0}"'.format(name))
+        return self._fetch_int(self.hex_map['f9']['offset'] +
+            self.perks[name], 0x04)
 
-    def set_stat(self, stat, value):
-        if stat not in self.stats:
-            print "No such stat."
-            return
-        self.set_function_int('f6', 'base_'+stat, value)
+    def set_perk(self, name, val=1):
+        if name not in self.perks:
+            raise KeyError('No perk named "{0}"'.format(name))
+        self.set_int(self.hex_map['f9']['offset'] + self.perks[name], val)
 
-    def get_stat(self, stat):
-        if stat not in self.stats:
-            print "No such stat."
-            return
-        return self.get_int('f6', 'base_'+stat)
+    def get_stat(self, name):
+        if name not in self.stats:
+            raise KeyError('No stat named "{0}"'.format(name))
+        return self.get_int('f6', 'base_' + name)
+
+    def set_stat(self, name, value):
+        if name not in self.stats:
+            raise KeyError('No stat named "{0}"'.format(name))
+        self.set_function_int('f6', 'base_' + name, value)
 
     def print_skills(self):
-        print "{:<15} {:<30}".format('Skill','Value')
+        print "{:<15} {:<30}".format('Skill', 'Value')
         print 21*"-"
         for skill in sorted(self.skills.keys()):
             print "{:<15} {:<30}".format(skill, self.get_skill(skill))
@@ -154,17 +160,18 @@ class F2SaveFile(object):
             print "{:<40} {:<6}".format(perk, self.get_perk(perk))
 
     def print_stats(self):
-        print "{:<15} {:<30}".format('Stat','Value')
+        print "{:<15} {:<30}".format('Stat', 'Value')
         print 21*"-"
         for stat in sorted(self.stats):
             print "{:<15} {:<30}".format(stat, self.get_stat(stat))        
 
-    def load_items(self):
-        with open(self.item_path, 'r') as f:
+    def _load_items(self):
+        with open('f2items.csv', 'r') as item_file:
             section = None
-            for line in f:
+            for line in item_file:
                 line = line.replace('\n', '').strip()
-                if line == '': continue
+                if line == '':
+                    continue
                 if line[0] == '[':
                     if section:
                         section = None
@@ -176,48 +183,40 @@ class F2SaveFile(object):
                     exit(1)
                 for i in xrange(0, len(ps), 2):
                     self.item_db[ps[i]] = {'name':ps[i+1], "section":section}
-        #print "Loaded {0} items.".format(len(self.item_db))
 
-    def find_F6(self):
+    def _find_f6(self):
         """ Region without a fixed start index. """
         items_start = 0x80 + self.f5s
         item_size = 0x58 + 0x04
         always_zero = [0x0C, 0x10, 0x40, 0x58]
-        always_neg_one = [0x34, 0x48]
+        #always_neg_one = [0x34, 0x48]
         bad_item = False
-        c = 0
-        #print "Scanning items..."
         c_item_start = items_start - item_size
         while not bad_item:
             c_item_start += item_size
-            obj_id = str(self.fetch_int(c_item_start + 0x30, 0x04))
+            obj_id = str(self._fetch_int(c_item_start + 0x30, 0x04))
             if obj_id not in self.item_db:
-                print "<WARNING> Be careful! Unknown item found. Editing is likely to fail!"
-                break
-
-            amt = self.fetch_int(c_item_start, 0x04)
+                raise ValueError('Found unknown item id. Editing this file will corrupt it.')
+            #amt = self._fetch_int(c_item_start, 0x04)
             section = self.item_db[obj_id]['section']
             for addr in always_zero:
-                c_val = self.fetch_int(c_item_start + addr, 0x04)
-                #print c_val
+                c_val = self._fetch_int(c_item_start + addr, 0x04)
                 if c_val != 0:
                     pass
                     bad_item = True
             if bad_item:
                 break
-
-            #print "{0} : [name: {1}\tamt: {2}\tsection: {3}]".format(obj_id, self.item_db[obj_id]['name'], amt, section)
             if section in ['weapons']:
                 c_item_start += 0x04
             #TODO Add containers
             if not(section in ['armor', 'drugs']):
                 c_item_start += 0x04
-            c += 1
-        #print "Found {0} items.".format(c)
         return c_item_start + 0x04
 
-    def find_address(self, marker):
-        return self.mm.find(marker)
+    def _find_address(self, marker):
+        return self.mm_save.find(marker)
 
     def print_info(self):
-        print "Save Name: '{0}'\tCharacter: '{1}'".format(self.get_value('header', 'savename'), self.get_value('header', 'name'))
+        print "Save Name: '{0}'\tCharacter: '{1}'".format(
+            self.get_value('header', 'savename'), 
+            self.get_value('header', 'name'))

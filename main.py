@@ -1,8 +1,8 @@
+#!/usr/bin/env python
+
 import os
-import sys
 import cmd
 import getpass
-import argparse
 
 from f2_save_file import F2SaveFile
 
@@ -40,20 +40,30 @@ The file is edited as soon as you make a change. ('exit' to exit.)"""
         if not text:
             compl = keys
         else:
-            compl = [k for k in keys if k.startswith(text)]     
+            compl = [k for k in keys if k.startswith(text)]
         return compl
+
+    def _modify_value(self, name, getter, setter):
+        """Wrapper for the modifier functions."""
+        try:
+            value = raw_input('[Value: {0}] New value: '.format(getter(name)))
+        except KeyError as exc:
+            print str(exc)
+            return
+        try:
+            value = int(value)
+            if value < 0:
+                raise ValueError()
+        except ValueError as exc:
+            print "Positive integer required."
+            return
+        setter(name, value)
+        print "Done."
 
     def do_set_skill(self, skill):
         """set_skill [skill]
         Modify skill values."""
-        value = raw_input('[Value: {0}] New value: '.format(self.save_file.get_skill(skill)))
-        try:
-            value = int(value)
-        except ValueError as exc:
-            print "Integer required."
-            return
-        self.save_file.set_skill(skill, value)
-        print "Done."
+        self._modify_value(skill, self.save_file.get_skill, self.save_file.set_skill)
 
     def complete_set_skill(self, text, line, b_ind, e_ind):
         return self.__get_completion(text, self.save_file.skills.keys())
@@ -61,15 +71,7 @@ The file is edited as soon as you make a change. ('exit' to exit.)"""
     def do_set_perk(self, perk):
         """set_perk [perk]
         Modify perks. The correct value is 1 for most perks, but some can be stacked."""
-        value = raw_input('[Value: {0}] New value: '.format(
-            self.save_file.get_perk(perk)))
-        try:
-            value = int(value)
-        except ValueError as exc:
-            print "Integer required."
-            return
-        self.save_file.set_perk(perk, value)
-        print "Done."
+        self._modify_value(perk, self.save_file.get_perk, self.save_file.set_perk)
 
     def complete_set_perk(self, text, line, b_ind, e_ind):
         return self.__get_completion(text, self.save_file.perks.keys())
@@ -77,28 +79,20 @@ The file is edited as soon as you make a change. ('exit' to exit.)"""
     def do_set_stat(self, stat):
         """set_stat [stat]
         Modify stats. Values are limited to be in [1, 10]."""
-        value = raw_input('[Value: {0}] New value: '.format(
-            self.save_file.get_stat(stat)))
-        try:
-            value = int(value)
-        except ValueError as exc:
-            print "Integer required."
-            return
-        if not(1 < value <= 10):
-            print "Stat must be in [1, 10]."
-            return
-        self.save_file.set_stat(stat, value)
-        print "Done."
+        self._modify_value(stat, self.save_file.get_stat, self.save_file.set_stat)
 
     def complete_set_stat(self, text, line, b_ind, e_ind):
         return self.__get_completion(text, self.save_file.stats)
 
     def do_exit(self, line):
+        """exit
+        Terminate shell"""
         exit(0)
 
 if __name__ == '__main__':
     # Running on Windows/Linux/Non-GoG.com? Replace this path! 
-    save_path = "/Users/{0}/Library/Application Support/GOG.com/Fallout 2/saves".format(getpass.getuser())
+    save_path = "/Users/{0}/Library/Application Support/GOG.com/Fallout 2/saves".format(
+        getpass.getuser())
     try:
         slots = os.listdir(save_path)
     except OSError as exc:
@@ -108,9 +102,13 @@ if __name__ == '__main__':
     print "Choose save to edit:"
     for i, slot in enumerate(slots):
         print "[{0}]\t{1}".format(i, slot)
-    c = int(raw_input('<0 - {0}> Edit: '.format(len(slots)-1)))
-    if c > len(slots):
-        print "."
+    try:
+        slot = int(raw_input('<0 - {0}> Edit: '.format(len(slots)-1)))
+    except ValueError as exc:
+        print "You need an integer."
         exit(1)
-    save = F2SaveFile(os.path.join(save_path, slots[c]))
+    if slot > len(slots) or slot < 0:
+        print "Invalid slot."
+        exit(1)
+    save = F2SaveFile(os.path.join(save_path, slots[slot]))
     EditShell(save).cmdloop()
