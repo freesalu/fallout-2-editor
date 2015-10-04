@@ -51,5 +51,8 @@ Done.
 - Add item editing.
 - Show actual modified skill values.
 
+## Known Issues
+- Some valid save game files fail the parsing stage. This seems to mostly happen with saves towards the end of the game.
+
 ## Credits
 Based on the great documentation from http://falloutmods.wikia.com/wiki/SAVE.DAT_File_Format
