@@ -1,0 +1,119 @@
+0x00,Awareness
+0x01,Bonus HtH Attacks
+0x02,Bonus HtH Damage*
+0x03,Bonus Move
+0x04,Bonus Ranged Damage
+0x05,Bonus Rate of Fire
+0x06,Earlier Sequence*
+0x07,Faster Healing*
+0x08,More Criticals*
+0x09,Night Vision
+0x0A,Presence
+0x0B,Rad Resistance
+0x0C,Toughness*
+0x0D,Strong Back*
+0x0E,Sharpshooter
+0x0F,Silent Running
+0x10,Survivalist
+0x11,Master Trader
+0x12,Educated
+0x13,Healer
+0x14,Fortune Finder
+0x15,Better Criticals*
+0x16,Empathy
+0x17,Slayer
+0x18,Sniper
+0x19,Silent Death
+0x1A,Action Boy*
+0x1B,Mental Block (FO1 only)
+0x1C,Lifegiver
+0x1D,Dodger*
+0x1E,Snakeeater
+0x1F,Mr. Fixit
+0x20,Medic
+0x21,Master Thief
+0x22,Speaker
+0x23,Heave Ho!
+0x24,Unimplemented
+0x25,Pickpocket
+0x26,Ghost
+0x27,Cult of Personality
+0x28,Scrounger (FO1 only)
+0x29,Explorer
+0x2A,Flower Child (FO1 only)
+0x2B,Pathfinder
+0x2C,Animal Friend (FO1 only)
+0x2D,Scout
+0x2E,Mysterious Stranger
+0x2F,Ranger
+0x30,Quick Pockets
+0x31,Smooth Talker
+0x32,Swift Learner
+0x33,Tag!*
+0x34,Mutate!*
+0x35,Nuka-Cola Addiction
+0x36,Buffout Addiction
+0x37,Mentats Addiction
+0x38,Psycho Addiction
+0x39,Radaway Addiction
+0x3A,Weapon Long Range†
+0x3B,Weapon Accurate†
+0x3C,Weapon Penetrate†
+0x3D,Weapon Knockback†
+0x3E,Powered Armor†
+0x3F,Combat Armor†
+0x40,Weapon Scope range†
+0x41,Weapon Fast reload†
+0x42,Weapon Night sight†
+0x43,Weapon Flameboy†
+0x44,Armor Advanced I†
+0x45,Armor Advanced II†
+0x46,Jet Addiction
+0x47,Tragic Addiction
+0x48,Armor Charisma†
+0x49,Gecko Skinning
+0x4A,Dermal Impact Armor
+0x4B,Dermal Impact Assault Enhancements(*)
+0x4C,Phoenix Armor Implants
+0x4D,Phoenix Assault Enhancements(*)
+0x4E,Vault City Inoculations
+0x4F,Adrenaline Rush
+0x50,Cautious Nature
+0x51,Comprehension
+0x52,Demolition Expert
+0x53,Gambler
+0x54,Gain Strength
+0x55,Gain Perception
+0x56,Gain Endurance
+0x57,Gain Charisma
+0x58,Gain Intelligence
+0x59,Gain Agility
+0x5A,Gain Luck
+0x5B,Harmless
+0x5C,Here and Now*
+0x5D,HtH Evade
+0x5E,Kama Sutra Master
+0x5F,Karma Beacon
+0x60,Light Step
+0x61,Living Anatomy
+0x62,Magnetic Personality
+0x63,Negotiator
+0x64,Pack Rat*
+0x65,Pyromaniac
+0x66,Quick Recovery
+0x67,Salesman
+0x68,Stonewall
+0x69,Thief
+0x6A,Weapon Handling
+0x6B,Vault City Training
+0x6C,Alcohol Raised Hit Points
+0x6D,Alcohol Raised Hit Points II
+0x6E,Alcohol Lowered Hit Points
+0x6F,Alcohol Lowered Hit Points II
+0x70,Autodoc Raised Hit Points
+0x71,Autodoc Raised Hit Points II
+0x72,Autodoc Lowered Hit Points
+0x73,Autodoc Lowered Hit Points II
+0x74,Expert Excrement Expeditor
+0x75,Weapon Enhanced Knockout†
+0x76,Jinxed
