@@ -102,13 +102,15 @@ class F2SaveFile(object):
         return struct.unpack('>i', self.mm_save[to_up:to_up+0x04])[0]
 
     def _load_skills(self):
-        with open('f2skills.csv', 'r') as skill_file:
+        fname = os.path.join('data', 'f2skills.csv')
+        with open(fname, 'r') as skill_file:
             for line in skill_file:
                 offs, name = line.replace('\n', '').split(',')
                 self.skills[name] = int(offs, 16)*0x04
 
     def _load_perks(self):
-        with open('f2perks.csv', 'r') as perk_file:
+        fname = os.path.join('data', 'f2perks.csv')
+        with open(fname, 'r') as perk_file:
             for line in perk_file:
                 offs, name = line.replace('\n', '').split(',')
                 self.perks[name] = int(offs, 16)*0x04
@@ -166,7 +168,8 @@ class F2SaveFile(object):
             print "{:<15} {:<30}".format(stat, self.get_stat(stat))        
 
     def _load_items(self):
-        with open('f2items.csv', 'r') as item_file:
+        fname = os.path.join('data', 'f2items.csv')
+        with open(fname, 'r') as item_file:
             section = None
             for line in item_file:
                 line = line.replace('\n', '').strip()
